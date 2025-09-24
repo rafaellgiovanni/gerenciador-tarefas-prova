@@ -37,6 +37,7 @@ class TaskController extends Controller
         auth()->user()->tasks()->create([
             'title' => $request->title,
             'description' => $request->description,
+            'status' => 'pendente',
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Tarefa criada com sucesso!');
