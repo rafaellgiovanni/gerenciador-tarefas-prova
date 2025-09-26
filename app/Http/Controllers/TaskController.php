@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Task; // <-- Importante adicionar esta linha!
+use App\Models\Task;
+use App\Http\Requests\TaskRequest;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -10,9 +11,16 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request) // <-- Lógica de filtro aqui
     {
-        $tasks = auth()->user()->tasks;
+        $query = auth()->user()->tasks();
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tasks = $query->get();
+
         return view('tasks.index', compact('tasks'));
     }
 
@@ -27,13 +35,8 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
         auth()->user()->tasks()->create([
             'title' => $request->title,
             'description' => $request->description,
@@ -46,7 +49,7 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Task $task) // <-- CORRIGIDO AQUI
+    public function show(Task $task)
     {
         $this->authorize('view', $task);
         return view('tasks.show', compact('task'));
@@ -55,7 +58,7 @@ class TaskController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Task $task) // <-- CORRIGIDO AQUI
+    public function edit(Task $task)
     {
         $this->authorize('update', $task);
         return view('tasks.edit', compact('task'));
@@ -64,15 +67,9 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(TaskRequest $request, Task $task)
     {
         $this->authorize('update', $task);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|string|in:pendente,concluída',
-        ]);
 
         $task->update($request->all());
 
