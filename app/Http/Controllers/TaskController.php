@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
+use App\Http\Requests\TaskRequest;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -9,31 +11,32 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request) // <-- Lógica de filtro aqui
     {
-        $tasks = auth()->user()->tasks;
+        $query = auth()->user()->tasks();
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tasks = $query->get();
+
         return view('tasks.index', compact('tasks'));
     }
-
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-         return view('tasks.create');
+        return view('tasks.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
         auth()->user()->tasks()->create([
             'title' => $request->title,
             'description' => $request->description,
@@ -43,20 +46,19 @@ class TaskController extends Controller
         return redirect()->route('tasks.index')->with('success', 'Tarefa criada com sucesso!');
     }
 
-
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Task $task)
     {
-         $this->authorize('view', $task);
+        $this->authorize('view', $task);
         return view('tasks.show', compact('task'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Task $task)
     {
         $this->authorize('update', $task);
         return view('tasks.edit', compact('task'));
@@ -65,21 +67,14 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(TaskRequest $request, Task $task)
     {
         $this->authorize('update', $task);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|string|in:pendente,concluída',
-        ]);
 
         $task->update($request->all());
 
         return redirect()->route('tasks.index')->with('success', 'Tarefa atualizada com sucesso!');
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -87,10 +82,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $this->authorize('delete', $task);
-
         $task->delete();
-
         return redirect()->route('tasks.index')->with('success', 'Tarefa excluída com sucesso!');
     }
-
-} 
+}
