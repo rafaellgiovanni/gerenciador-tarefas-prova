@@ -11,7 +11,8 @@ class TaskRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // permite que qualquer usuário autenticado faça a requisição.
+        return true;
     }
 
     /**
@@ -21,8 +22,12 @@ class TaskRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Regras de validação.
         return [
-            //
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            // Validação de status para o método de update
+            'status' => 'sometimes|required|string|in:pendente,concluída',
         ];
     }
 }
