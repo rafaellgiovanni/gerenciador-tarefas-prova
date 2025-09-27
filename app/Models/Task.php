@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <-- CORRIGIDO
-use Illuminate\Database\Eloquent\Model;                 // <-- CORRIGIDO
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
@@ -12,12 +12,20 @@ class Task extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
         'title',
         'description',
-        'status',
-        'user_id',
+        'is_completed',
+        'user_id' // Certifique-se de que esta linha está aqui
     ];
+
+    /**
+     * Get the user that owns the Task.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
