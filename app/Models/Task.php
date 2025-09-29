@@ -18,7 +18,7 @@ class Task extends Model
         'title',
         'description',
         'is_completed',
-        'user_id' // Certifique-se de que esta linha está aqui
+        'user_id'
     ];
 
     /**
