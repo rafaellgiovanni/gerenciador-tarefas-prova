@@ -5,27 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Http\Requests\TaskRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Exibe a lista de tarefas do usuário logado.
      */
-    public function index(Request $request) // <-- Lógica de filtro aqui
-    {
-        $query = auth()->user()->tasks();
+    public function index()
+{
+     $tasks = Auth::user()->tasks()->latest()->paginate(10);
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $tasks = $query->get();
-
-        return view('tasks.index', compact('tasks'));
-    }
+    return view('tasks.index', compact('tasks'));
+}
 
     /**
-     * Show the form for creating a new resource.
+     * Mostra o formulário de criação de uma nova tarefa.
      */
     public function create()
     {
@@ -33,56 +28,54 @@ class TaskController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Armazena uma nova tarefa no banco.
      */
     public function store(TaskRequest $request)
     {
-        auth()->user()->tasks()->create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => 'pendente',
-        ]);
+        $data = $request->validated();
+        $data['user_id'] = Auth::id();
 
-        return redirect()->route('tasks.index')->with('success', 'Tarefa criada com sucesso!');
+        Task::create($data);
+
+        return redirect()->route('tasks.index')
+                         ->with('success', 'Tarefa criada com sucesso!');
     }
 
     /**
-     * Display the specified resource.
+     * Exibe os detalhes de uma tarefa específica.
      */
     public function show(Task $task)
     {
-        $this->authorize('view', $task);
         return view('tasks.show', compact('task'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Mostra o formulário de edição de uma tarefa existente.
      */
     public function edit(Task $task)
     {
-        $this->authorize('update', $task);
         return view('tasks.edit', compact('task'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Atualiza uma tarefa no banco.
      */
     public function update(TaskRequest $request, Task $task)
     {
-        $this->authorize('update', $task);
+        $task->update($request->validated());
 
-        $task->update($request->all());
-
-        return redirect()->route('tasks.index')->with('success', 'Tarefa atualizada com sucesso!');
+        return redirect()->route('tasks.index')
+                         ->with('success', 'Tarefa atualizada com sucesso!');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove uma tarefa do banco.
      */
     public function destroy(Task $task)
     {
-        $this->authorize('delete', $task);
         $task->delete();
-        return redirect()->route('tasks.index')->with('success', 'Tarefa excluída com sucesso!');
+
+        return redirect()->route('tasks.index')
+                         ->with('success', 'Tarefa excluída com sucesso!');
     }
 }
