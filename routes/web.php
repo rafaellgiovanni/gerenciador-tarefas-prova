@@ -3,6 +3,21 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+
+Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])
+    ->middleware('guest')
+    ->name('password.request');
+
+Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])
+    ->middleware('guest')
+    ->name('password.email');
+
+Route::get('/register', function () {
+    return view('auth.register');
+})->name('register');
+
+
 
 // Página inicial
 Route::get('/', function () {
